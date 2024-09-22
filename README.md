@@ -35,7 +35,18 @@ Designed for common use cases, such as when you have keys from an external servi
 ```rust
 use easy_rsa::{RsaKey};
 
-let key = "..."; //Can be PKCS#1/8 PEM, DER Base64 encoded string or DER raw bytes.
+//Can be PKCS#1/8 PEM, DER Base64 encoded string or DER raw bytes.
+let key = r#"-----BEGIN RSA PRIVATE KEY-----
+MIIBVAIBADANBgkqhkiG9w0BAQEFAASCAT4wggE6AgEAAkEAkbULQYDEI/JWm49R
+jybBPLnTd2cKKo7NAUySMuA3poiM9L29JRfvJKD7jX+tCD3f9YjQKwNnl0Emaxnl
+2mhQ8wIDAQABAkBOkq+wMg0TSWK03nNf28lGwvqrH/CWhI0+jxkjwE+iSJ42Wu09
+tqEx4tDQzH6zb2+1iUNfpJO8a33ux2vkRv9ZAiEAx93S9f8vCEmdp7hJumzuPYnW
+qPC05DwoLVbkyM2p3UcCIQC6oTo+jlfiItlLXEoJwhI4ojvoVM/RXuJlczwzQQIU
+9QIhAIEfin9rEZOlG7mTke5jGbegKZKTkAoz4zEHhl9En41ZAiBFFRcdPs1zLJko
+lyHk2Myr4Amy52oBw1CkYvJ+umqN3QIgTCu9ZyAqvm+hwKup8JCwCHwQL6FCt+MJ
+/OS7WqqiDRc=
+-----END RSA PRIVATE KEY-----"#;
+
 let private_key = RsaKey::import(key).unwrap().into_private().unwrap();
 
 let signed = private_key.sign("payload".as_bytes()).unwrap();
@@ -46,7 +57,13 @@ let decrypted = private_key.decrypt("encrypted msg".as_bytes()).unwrap();
 ```rust
 use easy_rsa::{RsaKey};
 
-let key = "..."; //Can be PKCS#1/8 PEM, DER Base64 encoded string or DER raw bytes.
+//Can be PKCS#1/8 PEM, DER Base64 encoded string or DER raw bytes.
+let key = r#"-----BEGIN PUBLIC KEY-----
+MFwwDQYJKoZIhvcNAQEBBQADSwAwSAJBAJG1C0GAxCPyVpuPUY8mwTy503dnCiqO
+zQFMkjLgN6aIjPS9vSUX7ySg+41/rQg93/WI0CsDZ5dBJmsZ5dpoUPMCAwEAAQ==
+-----END PUBLIC KEY-----
+"#;
+
 let public_key = RsaKey::import(key).unwrap().into_public();
 let sign_to_verify = "some_sign";
 
@@ -57,7 +74,17 @@ let encrypted = public_key.encrypt("encrypted msg".as_bytes()).unwrap();
 ```rust
 use easy_rsa::{RsaKey, Hasher, EncryptionPadding, SignPadding};
 
-let key = "..."; //Can be PKCS#1/8 PEM, DER Base64 encoded string or DER raw bytes.
+//Can be PKCS#1/8 PEM, DER Base64 encoded string or DER raw bytes.
+let key = r#"-----BEGIN RSA PRIVATE KEY-----
+MIIBVAIBADANBgkqhkiG9w0BAQEFAASCAT4wggE6AgEAAkEAkbULQYDEI/JWm49R
+jybBPLnTd2cKKo7NAUySMuA3poiM9L29JRfvJKD7jX+tCD3f9YjQKwNnl0Emaxnl
+2mhQ8wIDAQABAkBOkq+wMg0TSWK03nNf28lGwvqrH/CWhI0+jxkjwE+iSJ42Wu09
+tqEx4tDQzH6zb2+1iUNfpJO8a33ux2vkRv9ZAiEAx93S9f8vCEmdp7hJumzuPYnW
+qPC05DwoLVbkyM2p3UcCIQC6oTo+jlfiItlLXEoJwhI4ojvoVM/RXuJlczwzQQIU
+9QIhAIEfin9rEZOlG7mTke5jGbegKZKTkAoz4zEHhl9En41ZAiBFFRcdPs1zLJko
+lyHk2Myr4Amy52oBw1CkYvJ+umqN3QIgTCu9ZyAqvm+hwKup8JCwCHwQL6FCt+MJ
+/OS7WqqiDRc=
+-----END RSA PRIVATE KEY-----"#;
 
 let rsa_private_key = RsaKey::import(key).unwrap()
    .encryption_padding(EncryptionPadding::OAEP)
