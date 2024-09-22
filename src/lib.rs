@@ -259,6 +259,28 @@ impl RsaKey<RsaPublicKey> {
     }
 }
 
+impl RsaKey<()> {
+    /// Imports an RSA key from PKCS#1/8 PEM, DER Base64 encoded string or DER raw bytes.
+    ///
+    /// The header is taken into account, but the key will still be parsed even if the header corresponds to a different encoding / key type.
+    /// For example, a __private key__ in PKCS#1 encoding with the header __BEGIN PUBLIC KEY__ will still be loaded correctly.
+    ///
+    /// # Returns
+    ///
+    /// An [RsaKeyBuilder]
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if the key is unsupported or invalid.
+    pub fn import<D: AsRef<[u8]>>(data: D) -> anyhow::Result<RsaKeyBuilder> {
+        let Some(k) = RsaKey::try_import(data) else {
+            return Err(anyhow!("Unsupported or invalid key data!"));
+        };
+
+        Ok(RsaKeyBuilder { key: k })
+    }
+}
+
 impl RsaKey<AbstractRsaKey> {
     fn try_import<T: AsRef<[u8]>>(data: T) -> Option<RsaKey<AbstractRsaKey>> {
         let key_data = data.as_ref();
@@ -319,26 +341,6 @@ impl RsaKey<AbstractRsaKey> {
 }
 
 impl<T: Clone + Debug + Eq> RsaKey<T> {
-    /// Imports an RSA key from PKCS#1/8 PEM, DER Base64 encoded string or DER raw bytes.
-    ///
-    /// The header is taken into account, but the key will still be parsed even if the header corresponds to a different encoding / key type.
-    /// For example, a _private key_ in PKCS#1 encoding with the header _BEGIN PUBLIC KEY_ will still be loaded correctly.
-    ///
-    /// # Returns
-    ///
-    /// An [RsaKeyBuilder]
-    ///
-    /// # Errors
-    ///
-    /// Returns an error if the key is unsupported or invalid.
-    pub fn import<D: AsRef<[u8]>>(data: D) -> anyhow::Result<RsaKeyBuilder> {
-        let Some(k) = RsaKey::try_import(data) else {
-            return Err(anyhow!("Unsupported or invalid key data!"));
-        };
-
-        Ok(RsaKeyBuilder { key: k })
-    }
-
     fn oaep_enc_schema(&self) -> Oaep {
         match self.hasher {
             Hasher::Sha1 => Oaep::new::<Sha1>(),
