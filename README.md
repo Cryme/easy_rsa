@@ -3,6 +3,8 @@ WIP
 TODO:
  - crate.io
  - badges
+ - github ci
+ - github deps bot
 
 ---
 
@@ -10,11 +12,11 @@ A simple wrapper around [RustCrypto] for easier usage, similar to how you would 
 
 Designed for common use cases, such as when you have keys from an external service, and want to use them without digging into RustCrypto.
 
-#### Supported signing algorithms:
+#### Supported sign paddings:
 - PSS
 - PKCS#1 v1.5 _(default)_
 
-#### Supported encrypting algorithms:
+#### Supported encryption paddings:
 - AOEP
 - PKCS#1 v1.5 _(default)_
 
