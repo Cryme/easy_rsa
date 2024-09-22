@@ -167,7 +167,7 @@ enum AbstractRsaKey {
 /// ```
 #[derive(Debug, Clone, Eq, PartialEq)]
 pub struct RsaKey<T: Clone + Debug + Eq + PartialEq> {
-    hash_alg: Hasher,
+    hasher: Hasher,
     sign_padding: SignPadding,
     encryption_padding: EncryptionPadding,
     key: T,
@@ -210,7 +210,7 @@ impl RsaKey<RsaPrivateKey> {
     /// Converts private RSA key into a public key.
     pub fn into_public_key(self) -> RsaKey<RsaPublicKey> {
         RsaKey {
-            hash_alg: self.hash_alg,
+            hasher: self.hasher,
             sign_padding: self.sign_padding,
             encryption_padding: self.encryption_padding,
             key: self.key.to_public_key(),
@@ -271,7 +271,7 @@ impl RsaKey<AbstractRsaKey> {
     fn try_import<T: AsRef<[u8]>>(data: T) -> Option<RsaKey<AbstractRsaKey>> {
         let key_data = data.as_ref();
 
-        if key_data.len() == 0 {
+        if key_data.is_empty() {
             return None;
         }
 
@@ -300,7 +300,7 @@ impl RsaKey<AbstractRsaKey> {
         };
 
         Ok(RsaKey {
-            hash_alg: self.hash_alg,
+            hasher: self.hasher,
             sign_padding: self.sign_padding,
             encryption_padding: self.encryption_padding,
             key,
@@ -310,14 +310,14 @@ impl RsaKey<AbstractRsaKey> {
     fn into_public_key(self) -> anyhow::Result<RsaKey<RsaPublicKey>> {
         match self.key {
             AbstractRsaKey::Private(key) => Ok(RsaKey {
-                hash_alg: self.hash_alg,
+                hasher: self.hasher,
                 sign_padding: self.sign_padding,
                 encryption_padding: self.encryption_padding,
                 key: key.to_public_key(),
             }),
 
             AbstractRsaKey::Public(key) => Ok(RsaKey {
-                hash_alg: self.hash_alg,
+                hasher: self.hasher,
                 sign_padding: self.sign_padding,
                 encryption_padding: self.encryption_padding,
                 key,
@@ -327,20 +327,8 @@ impl RsaKey<AbstractRsaKey> {
 }
 
 impl<T: Clone + Debug + Eq> RsaKey<T> {
-    fn set_hashing_alg(&mut self, algorithm: Hasher) {
-        self.hash_alg = algorithm;
-    }
-
-    fn set_crypt_alg(&mut self, algorithm: EncryptionPadding) {
-        self.encryption_padding = algorithm;
-    }
-
-    fn set_sign_alg(&mut self, algorithm: SignPadding) {
-        self.sign_padding = algorithm;
-    }
-
     fn oaep_enc_schema(&self) -> Oaep {
-        match self.hash_alg {
+        match self.hasher {
             Hasher::Sha1 => Oaep::new::<Sha1>(),
             Hasher::Sha256 => Oaep::new::<Sha256>(),
             Hasher::Sha224 => Oaep::new::<Sha224>(),
@@ -352,11 +340,11 @@ impl<T: Clone + Debug + Eq> RsaKey<T> {
     }
 
     fn pkcs1v15_enc_schema(&self) -> Pkcs1v15Encrypt {
-        Pkcs1v15Encrypt::default()
+        Pkcs1v15Encrypt
     }
 
     fn pkcs1v15_sign_schema_and_hash(&self, msg: &[u8]) -> (Pkcs1v15Sign, Vec<u8>) {
-        match self.hash_alg {
+        match self.hasher {
             Hasher::Sha256 => {
                 let scheme = Pkcs1v15Sign::new::<Sha256>();
 
@@ -424,7 +412,7 @@ impl<T: Clone + Debug + Eq> RsaKey<T> {
     }
 
     fn pss_sign_schema_and_hash(&self, msg: &[u8]) -> (Pss, Vec<u8>) {
-        match self.hash_alg {
+        match self.hasher {
             Hasher::Sha256 => {
                 let scheme = Pss::new::<Sha256>();
 
@@ -503,7 +491,7 @@ impl RsaKeyBuilder {
     ///
     /// _(Hashing is not used for PKCS#1 v1.5 enc/dec)_
     pub fn hasher(mut self, v: Hasher) -> Self {
-        self.key.hash_alg = v;
+        self.key.hasher = v;
 
         self
     }
@@ -571,16 +559,8 @@ fn try_from_der_string(
         return None;
     };
 
-    let declared_key_type = if let Some(v) = declared_key_type {
-        v
-    } else {
-        RsaKeyType::default()
-    };
-    let declared_encoding = if let Some(v) = declared_encoding {
-        v
-    } else {
-        KeyEncoding::default()
-    };
+    let declared_key_type = declared_key_type.unwrap_or_default();
+    let declared_encoding = declared_encoding.unwrap_or_default();
 
     try_from_der(&der, declared_key_type, declared_encoding)
 }
@@ -592,18 +572,18 @@ fn try_from_der(
 ) -> Option<RsaKey<AbstractRsaKey>> {
     match declared_encoding {
         KeyEncoding::Pkcs1 => {
-            if let Some(key) = try_from_der_pkcs1(&der, declared_key_type) {
+            if let Some(key) = try_from_der_pkcs1(der, declared_key_type) {
                 Some(key)
             } else {
-                try_from_der_pkcs8(&der, declared_key_type)
+                try_from_der_pkcs8(der, declared_key_type)
             }
         }
 
         KeyEncoding::Pkcs8 => {
-            if let Some(key) = try_from_der_pkcs8(&der, declared_key_type) {
+            if let Some(key) = try_from_der_pkcs8(der, declared_key_type) {
                 Some(key)
             } else {
-                try_from_der_pkcs1(&der, declared_key_type)
+                try_from_der_pkcs1(der, declared_key_type)
             }
         }
     }
@@ -640,7 +620,7 @@ fn try_public_from_der_pkcs1(der: &[u8]) -> Option<RsaKey<AbstractRsaKey>> {
     Some(RsaKey {
         key: AbstractRsaKey::Public(key),
         sign_padding: SignPadding::default(),
-        hash_alg: Hasher::default(),
+        hasher: Hasher::default(),
         encryption_padding: EncryptionPadding::default(),
     })
 }
@@ -656,7 +636,7 @@ fn try_private_from_der_pkcs1(der: &[u8]) -> Option<RsaKey<AbstractRsaKey>> {
     Some(RsaKey {
         key: AbstractRsaKey::Private(key),
         sign_padding: SignPadding::default(),
-        hash_alg: Hasher::default(),
+        hasher: Hasher::default(),
         encryption_padding: EncryptionPadding::default(),
     })
 }
@@ -692,7 +672,7 @@ fn try_public_from_der_pkcs8(der: &[u8]) -> Option<RsaKey<AbstractRsaKey>> {
     Some(RsaKey {
         key: AbstractRsaKey::Public(key),
         sign_padding: SignPadding::default(),
-        hash_alg: Hasher::default(),
+        hasher: Hasher::default(),
         encryption_padding: EncryptionPadding::default(),
     })
 }
@@ -708,7 +688,7 @@ fn try_private_from_der_pkcs8(der: &[u8]) -> Option<RsaKey<AbstractRsaKey>> {
     Some(RsaKey {
         key: AbstractRsaKey::Private(key),
         sign_padding: SignPadding::default(),
-        hash_alg: Hasher::default(),
+        hasher: Hasher::default(),
         encryption_padding: EncryptionPadding::default(),
     })
 }
@@ -729,13 +709,13 @@ mod test {
             .unwrap();
         let mut pub_key = priv_key.clone().into_public_key();
 
-        for enc_alg in EncryptionPadding::iter() {
-            for hash_alg in Hasher::iter() {
-                priv_key.set_hashing_alg(hash_alg);
-                pub_key.set_hashing_alg(hash_alg);
+        for enc_pad in EncryptionPadding::iter() {
+            for hasher in Hasher::iter() {
+                priv_key.hasher = hasher;
+                pub_key.hasher = hasher;
 
-                priv_key.set_crypt_alg(enc_alg);
-                pub_key.set_crypt_alg(enc_alg);
+                priv_key.encryption_padding = enc_pad;
+                pub_key.encryption_padding = enc_pad;
 
                 let payload = "some random string 127";
 
@@ -746,8 +726,8 @@ mod test {
                     payload.as_bytes(),
                     decoded,
                     "enc failed for pair {} {}",
-                    enc_alg,
-                    hash_alg
+                    enc_pad,
+                    hasher
                 );
             }
         }
@@ -764,23 +744,23 @@ mod test {
             .unwrap();
         let mut pub_key = priv_key.clone().into_public_key();
 
-        for sign_alg in SignPadding::iter() {
-            for hash_alg in Hasher::iter() {
-                priv_key.set_hashing_alg(hash_alg);
-                pub_key.set_hashing_alg(hash_alg);
+        for sign_pad in SignPadding::iter() {
+            for hasher in Hasher::iter() {
+                priv_key.hasher = hasher;
+                pub_key.hasher = hasher;
 
-                priv_key.set_sign_alg(sign_alg);
-                pub_key.set_sign_alg(sign_alg);
+                priv_key.sign_padding = sign_pad;
+                pub_key.sign_padding = sign_pad;
 
                 let payload = "some random string 128";
 
                 let sign = priv_key
                     .sign(payload.as_bytes())
-                    .expect(&format!("sign failed for pair {} {}", sign_alg, hash_alg));
+                    .unwrap_or_else(|_| panic!("sign failed for pair {} {}", sign_pad, hasher));
 
                 pub_key
                     .verify(payload.as_bytes(), &sign)
-                    .expect(&format!("verify failed for pair {} {}", sign_alg, hash_alg));
+                    .unwrap_or_else(|_| panic!("verify failed for pair {} {}", sign_pad, hasher));
             }
         }
     }
@@ -889,7 +869,7 @@ mod test {
 
     fn test_pem(pem: &str) {
         RsaKey::try_import(pem).unwrap();
-        let (c1, c2, c3) = corrupt_pem_header(&pem);
+        let (c1, c2, c3) = corrupt_pem_header(pem);
         RsaKey::try_import(c1).unwrap();
         RsaKey::try_import(c2).unwrap();
         RsaKey::try_import(c3).unwrap();
