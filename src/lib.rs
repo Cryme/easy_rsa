@@ -128,12 +128,11 @@ enum AbstractRsaKey {
 
 /// # Examples
 ///
-/// ### Sign/Decrypt
-///
 ///```
-/// use easy_rsa::{RsaKey};
+/// use easy_rsa::{RsaKey, Hasher, EncryptionPadding, SignPadding};
 ///
-/// let key_bytes = r#"-----BEGIN RSA PRIVATE KEY-----
+/// //Can be PKCS#1/8 PEM, DER Base64 encoded string or DER raw bytes.
+/// let key = r#"-----BEGIN RSA PRIVATE KEY-----
 /// MIIBVAIBADANBgkqhkiG9w0BAQEFAASCAT4wggE6AgEAAkEAkbULQYDEI/JWm49R
 /// jybBPLnTd2cKKo7NAUySMuA3poiM9L29JRfvJKD7jX+tCD3f9YjQKwNnl0Emaxnl
 /// 2mhQ8wIDAQABAkBOkq+wMg0TSWK03nNf28lGwvqrH/CWhI0+jxkjwE+iSJ42Wu09
@@ -143,26 +142,25 @@ enum AbstractRsaKey {
 /// lyHk2Myr4Amy52oBw1CkYvJ+umqN3QIgTCu9ZyAqvm+hwKup8JCwCHwQL6FCt+MJ
 /// /OS7WqqiDRc=
 /// -----END RSA PRIVATE KEY-----"#;
-/// let private_key = RsaKey::import(key_bytes).unwrap().into_private().unwrap();
+/// let private_key = RsaKey::import(key).unwrap().into_private().unwrap();
 ///
-/// let signed = private_key.sign("payload".as_bytes()).unwrap();
-/// let decrypted = private_key.decrypt("encrypted msg".as_bytes()).unwrap();
-///```
-///
-/// ### Verify/Encrypt
-///
-/// ```
-/// use easy_rsa::{RsaKey};
-///
-/// let key_bytes = r#"-----BEGIN PUBLIC KEY-----
+/// //Can be PKCS#1/8 PEM, DER Base64 encoded string or DER raw bytes.
+/// let key = r#"-----BEGIN PUBLIC KEY-----
 /// MFwwDQYJKoZIhvcNAQEBBQADSwAwSAJBAJG1C0GAxCPyVpuPUY8mwTy503dnCiqO
 /// zQFMkjLgN6aIjPS9vSUX7ySg+41/rQg93/WI0CsDZ5dBJmsZ5dpoUPMCAwEAAQ==
-/// -----END PUBLIC KEY-----"#;
-/// let public_key = RsaKey::import(key_bytes).unwrap().into_public();
-/// let sign_to_verify = "some_sign";
+/// -----END PUBLIC KEY-----
+/// "#;
+/// let public_key = RsaKey::import(key).unwrap().into_public();
 ///
-/// public_key.verify("payload".as_bytes(), sign_to_verify.as_bytes()).unwrap();
-/// let encrypted = public_key.encrypt("encrypted msg".as_bytes()).unwrap();
+/// let message = "some msg";
+///
+/// let encrypted = public_key.encrypt(message.as_bytes()).unwrap();
+/// let decrypted = private_key.decrypt(&encrypted).unwrap();
+///
+/// assert_eq!(message, std::str::from_utf8(&decrypted).unwrap());
+///
+/// let sign_to_verify = private_key.sign(message.as_bytes()).unwrap();
+/// public_key.verify(message.as_bytes(), sign_to_verify.as_bytes()).unwrap();
 ///```
 ///
 /// ### Options
