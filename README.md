@@ -33,8 +33,8 @@ Designed for common use cases, such as when you have keys from an external servi
 ```rust
 use easy_rsa::{RsaKey};
 
-let key_bytes = "MII...";
-let private_key = RsaKey::import(key_bytes).unwrap().into_private().unwrap();
+let key = "..."; //Can be PKCS#1/8 PEM, DER Base64 encoded string or DER raw bytes.
+let private_key = RsaKey::import(key).unwrap().into_private().unwrap();
 
 let signed = private_key.sign("payload".as_bytes()).unwrap();
 let decrypted = private_key.decrypt("encrypted msg".as_bytes()).unwrap();
@@ -44,8 +44,8 @@ let decrypted = private_key.decrypt("encrypted msg".as_bytes()).unwrap();
 ```rust
 use easy_rsa::{RsaKey};
 
-let key_bytes = "MII...";
-let public_key = RsaKey::import(key_bytes).unwrap().into_public();
+let key = "..."; //Can be PKCS#1/8 PEM, DER Base64 encoded string or DER raw bytes.
+let public_key = RsaKey::import(key).unwrap().into_public();
 let sign_to_verify = "some_sign";
 
 public_key.verify("payload".as_bytes(), sign_to_verify).unwrap();
@@ -55,10 +55,9 @@ let encrypted = public_key.encrypt("encrypted msg".as_bytes()).unwrap();
 ```rust
 use easy_rsa::{RsaKey, Hasher, EncryptionPadding, SignPadding};
 
-let key_bytes = "MII...";
-let public_key = RsaKey::import(key_bytes).unwrap().into_public();
+let key = "..."; //Can be PKCS#1/8 PEM, DER Base64 encoded string or DER raw bytes.
 
-let rsa_private_key = RsaKey::import(key_bytes).unwrap()
+let rsa_private_key = RsaKey::import(key).unwrap()
    .encryption_padding(EncryptionPadding::OAEP)
    .hasher(Hasher::Sha512)
    .sign_padding(SignPadding::PSS)

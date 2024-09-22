@@ -155,7 +155,6 @@ enum AbstractRsaKey {
 /// use easy_rsa::{RsaKey, Hasher, EncryptionPadding, SignPadding};
 ///
 /// let key_bytes = "MII...";
-/// let public_key = RsaKey::import(key_bytes).unwrap().into_public();
 ///
 /// let rsa_private_key = RsaKey::import(key_bytes).unwrap()
 ///    .encryption_padding(EncryptionPadding::OAEP)
@@ -261,6 +260,18 @@ impl RsaKey<RsaPublicKey> {
 }
 
 impl RsaKey<AbstractRsaKey> {
+    /// Imports an RSA key from PKCS#1/8 PEM, DER Base64 encoded string or DER raw bytes.
+    ///
+    /// The header is taken into account, but the key will still be parsed even if the header corresponds to a different encoding / key type.
+    /// For example, a _private key_ in PKCS#1 encoding with the header _BEGIN PUBLIC KEY_ will still be loaded correctly.
+    ///
+    /// # Returns
+    ///
+    /// An [RsaKeyBuilder]
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if the key is unsupported or invalid.
     pub fn import<T: AsRef<[u8]>>(data: T) -> anyhow::Result<RsaKeyBuilder> {
         let Some(k) = RsaKey::try_import(data) else {
             return Err(anyhow!("Unsupported or invalid key data!"));
@@ -268,6 +279,7 @@ impl RsaKey<AbstractRsaKey> {
 
         Ok(RsaKeyBuilder { key: k })
     }
+
     fn try_import<T: AsRef<[u8]>>(data: T) -> Option<RsaKey<AbstractRsaKey>> {
         let key_data = data.as_ref();
 
@@ -480,6 +492,20 @@ impl<T: Clone + Debug + Eq> RsaKey<T> {
     }
 }
 
+/// Builder for specifying paddings, hasher and key type _(private or public)_
+///
+/// ## Example
+/// ```
+/// use easy_rsa::{RsaKey, Hasher, EncryptionPadding, SignPadding};
+///
+/// let key_bytes = "MII...";
+///
+/// let rsa_private_key = RsaKey::import(key_bytes).unwrap()
+///    .encryption_padding(EncryptionPadding::OAEP)
+///    .hasher(Hasher::Sha512)
+///    .sign_padding(SignPadding::PSS)
+///    .into_private().unwrap();
+/// ```
 struct RsaKeyBuilder {
     key: RsaKey<AbstractRsaKey>,
 }
@@ -487,7 +513,7 @@ struct RsaKeyBuilder {
 impl RsaKeyBuilder {
     /// [Hasher]
     ///
-    /// SHA256 is used by default.
+    /// _SHA256_ is used by default.
     ///
     /// _(Hashing is not used for PKCS#1 v1.5 enc/dec)_
     pub fn hasher(mut self, v: Hasher) -> Self {
@@ -498,7 +524,7 @@ impl RsaKeyBuilder {
 
     /// [SignPadding]
     ///
-    /// PKCS1v15 is used by default.
+    /// _PKCS1v15_ is used by default.
     pub fn sign_padding(mut self, v: SignPadding) -> Self {
         self.key.sign_padding = v;
 
@@ -507,7 +533,7 @@ impl RsaKeyBuilder {
 
     /// [EncryptionPadding]
     ///
-    /// PKCS1v15 is used by default.
+    /// _PKCS1v15_ is used by default.
     pub fn encryption_padding(mut self, v: EncryptionPadding) -> Self {
         self.key.encryption_padding = v;
 
