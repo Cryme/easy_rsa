@@ -161,7 +161,7 @@ enum AbstractRsaKey {
 /// let public_key = RsaKey::import(key_bytes).unwrap().into_public();
 /// let sign_to_verify = "some_sign";
 ///
-/// public_key.verify("payload".as_bytes(), sign_to_verify).unwrap();
+/// public_key.verify("payload".as_bytes(), sign_to_verify.as_bytes()).unwrap();
 /// let encrypted = public_key.encrypt("encrypted msg".as_bytes()).unwrap();
 ///```
 ///
@@ -264,7 +264,7 @@ impl RsaKey<RsaPublicKey> {
     /// `msg` must be initial message without any modifications.
     ///
     /// If the message is valid `Ok(())` is returned, otherwise an `Err` indicating failure.
-    pub fn verify(&self, msg: &[u8], signature: &str) -> anyhow::Result<()> {
+    pub fn verify(&self, msg: &[u8], signature: &[u8]) -> anyhow::Result<()> {
         match self.sign_padding {
             SignPadding::PKCS1v15 => {
                 let (scheme, hash) = self.pkcs1v15_sign_schema_and_hash(msg);
@@ -812,7 +812,7 @@ mod test {
                     .unwrap_or_else(|_| panic!("sign failed for pair {} {}", sign_pad, hasher));
 
                 pub_key
-                    .verify(payload.as_bytes(), &sign)
+                    .verify(payload.as_bytes(), sign.as_bytes())
                     .unwrap_or_else(|_| panic!("verify failed for pair {} {}", sign_pad, hasher));
             }
         }
