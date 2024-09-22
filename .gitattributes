@@ -1,0 +1,2 @@
+test_examples/pkcs1/*.pem text eol=lf
+test_examples/pkcs8/*.pem text eol=lf
