@@ -523,7 +523,16 @@ impl<T: Clone + Debug + Eq> RsaKey<T> {
 /// ```
 /// use easy_rsa::{RsaKey, Hasher, EncryptionPadding, SignPadding};
 ///
-/// let key_bytes = "MII...";
+/// let key_bytes = r#"-----BEGIN RSA PRIVATE KEY-----
+/// MIIBVAIBADANBgkqhkiG9w0BAQEFAASCAT4wggE6AgEAAkEAkbULQYDEI/JWm49R
+/// jybBPLnTd2cKKo7NAUySMuA3poiM9L29JRfvJKD7jX+tCD3f9YjQKwNnl0Emaxnl
+/// 2mhQ8wIDAQABAkBOkq+wMg0TSWK03nNf28lGwvqrH/CWhI0+jxkjwE+iSJ42Wu09
+/// tqEx4tDQzH6zb2+1iUNfpJO8a33ux2vkRv9ZAiEAx93S9f8vCEmdp7hJumzuPYnW
+/// qPC05DwoLVbkyM2p3UcCIQC6oTo+jlfiItlLXEoJwhI4ojvoVM/RXuJlczwzQQIU
+/// 9QIhAIEfin9rEZOlG7mTke5jGbegKZKTkAoz4zEHhl9En41ZAiBFFRcdPs1zLJko
+/// lyHk2Myr4Amy52oBw1CkYvJ+umqN3QIgTCu9ZyAqvm+hwKup8JCwCHwQL6FCt+MJ
+/// /OS7WqqiDRc=
+/// -----END RSA PRIVATE KEY-----"#;
 ///
 /// let rsa_private_key = RsaKey::import(key_bytes).unwrap()
 ///    .encryption_padding(EncryptionPadding::OAEP)
