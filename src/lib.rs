@@ -506,7 +506,7 @@ impl<T: Clone + Debug + Eq> RsaKey<T> {
 ///    .sign_padding(SignPadding::PSS)
 ///    .into_private().unwrap();
 /// ```
-struct RsaKeyBuilder {
+pub struct RsaKeyBuilder {
     key: RsaKey<AbstractRsaKey>,
 }
 
