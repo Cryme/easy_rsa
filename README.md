@@ -1,10 +1,14 @@
 WIP
 
 TODO:
- - crate.io
- - badges
- - github ci
- - github deps bot
+ - think about namings once more
+ - publish on crates.io
+---
+<div align="center">
+  <img src="./easy_rsa.logo.png" width="200" alt="easy_rsa logo"/>
+
+  <h1>EasyRsa</h1>
+</div>
 
 ---
 

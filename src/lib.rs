@@ -240,6 +240,7 @@ impl RsaKey<RsaPrivateKey> {
     }
 }
 
+/// Performs _verify_ and _encrypt_ operations.
 impl RsaKey<RsaPublicKey> {
     /// Encrypt the given message using padding (and hash algorithm for OAEP), specified at build step (PKCS#1 v1.5 and SHA256 by default).
     pub fn encrypt(&self, msg: &[u8]) -> anyhow::Result<Vec<u8>> {
