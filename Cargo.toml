@@ -5,7 +5,7 @@ edition = "2021"
 
 [dependencies]
 anyhow = { version = "1.0.94" }
-rsa = { version = "0.9.6", features = ["sha2"]}
+rsa = { version = "0.9.8", features = ["sha2"]}
 base64 = { version = "0.22.1" }
 sha2 = { version = "0.10", features = ["oid"] }
 sha1 = { version = "0.10", features = ["oid"] }
